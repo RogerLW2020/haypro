@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hay Pro - Master Edition</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .row-alfalfa { background-color: #f0fdf4 !important; border-left: 6px solid #16a34a; }
+        .row-straw { background-color: #fffbeb !important; border-left: 6px solid #fbbf24; }
+        .row-grass { background-color: #f0f9ff !important; border-left: 6px solid #0ea5e9; }
+        .hot-load { color: #ef4444; font-weight: 900; animation: blink 1.5s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    </style>
+</head>
+<body class="bg-slate-100 p-2 md:p-6 font-sans">
+    <div class="max-w-7xl mx-auto text-slate-800">
+        <h1 class="text-3xl font-black text-green-900 mb-6 text-center italic tracking-tighter">HAY PRO MASTER</h1>
+
+        <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6 text-white text-center">
+            <div class="bg-red-800 p-4 rounded-xl shadow border-b-4 border-red-950">
+                <p class="text-[10px] font-bold opacity-70 uppercase">Cash Out</p>
+                <h2 id="totalSpent" class="text-xl font-bold font-mono">$0</h2>
+            </div>
+            <div class="bg-blue-800 p-4 rounded-xl shadow border-b-4 border-blue-950">
+                <p class="text-[10px] font-bold opacity-70 uppercase">Cash In</p>
+                <h2 id="totalEarned" class="text-xl font-bold font-mono">$0</h2>
+            </div>
+            <div id="profitBox" class="bg-slate-800 p-4 rounded-xl shadow border-b-4 border-slate-950">
+                <p class="text-[10px] font-bold opacity-70 uppercase">Net Profit</p>
+                <h2 id="netProfit" class="text-xl font-bold font-mono">$0</h2>
+            </div>
+            <div class="bg-emerald-700 p-4 rounded-xl shadow border-b-4 border-emerald-900">
+                <p class="text-[10px] font-bold opacity-70 uppercase">Stock (Tons)</p>
+                <h2 id="totalTons" class="text-xl font-bold font-mono">0.0</h2>
+            </div>
+            <div class="bg-orange-600 p-4 rounded-xl shadow border-b-4 border-orange-800">
+                <p class="text-[10px] font-bold opacity-70 uppercase">Tax Res (15%)</p>
+                <h2 id="taxReserve" class="text-xl font-bold font-mono">$0</h2>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            <div class="space-y-4">
+                <div class="bg-white p-5 rounded-xl shadow-md border-t-4 border-indigo-600">
+                    <h3 class="font-bold text-indigo-800 mb-2 uppercase text-[10px]">Tonnage Calculator</h3>
+                    <div class="flex flex-col gap-2">
+                        <input type="number" id="calcBales" placeholder="Bales" class="border p-2 rounded text-sm">
+                        <input type="number" id="calcAvgW" placeholder="Avg Lbs" class="border p-2 rounded text-sm">
+                        <button onclick="quickCalc()" class="bg-indigo-600 text-white font-bold py-2 rounded text-xs">Calculate</button>
+                        <p id="calcRes" class="text-center font-bold text-indigo-700 text-xs"></p>
+                    </div>
+                </div>
+                <div class="bg-white p-5 rounded-xl shadow-md border-t-4 border-blue-600">
+                    <h3 class="font-bold text-blue-800 mb-2 uppercase text-[10px]">Contacts</h3>
+                    <div class="flex gap-1 mb-2">
+                        <input type="text" id="newContact" placeholder="Name" class="w-full border p-2 rounded text-sm">
+                        <button onclick="addContact()" class="bg-blue-600 text-white px-3 rounded font-bold">+</button>
+                    </div>
+                    <ul id="contactList" class="text-[10px] space-y-1 max-h-32 overflow-y-auto"></ul>
+                </div>
+            </div>
+
+            <div class="lg:col-span-3 bg-white p-6 rounded-xl shadow-md border-t-4 border-green-700">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <select id="type" class="border p-3 rounded font-bold bg-slate-50">
+                        <option value="buy">BUYING</option>
+                        <option value="sell">SELLING</option>
+                    </select>
+                    <select id="contactPicker" class="border p-3 rounded bg-slate-50"></select>
+                    <input type="text" id="desc" placeholder="Variety (Alfalfa, Grass...)" class="border p-3 rounded font-bold">
+                    <input type="number" id="bales" placeholder="Bale Count" class="border p-3 rounded">
+                    <input type="number" id="weight" placeholder="Total Lbs" class="border p-3 rounded">
+                    <input type="number" id="totalPrice" placeholder="Total Cash $" class="border p-3 rounded">
+                    <input type="number" id="moisture" placeholder="Moisture %" class="border p-3 rounded">
+                    <input type="text" id="location" placeholder="Barn/Stack" class="border p-3 rounded text-sm">
+                    <input type="date" id="date" class="border p-3 rounded text-sm">
+                    <input type="text" id="notes" placeholder="Notes (use #tags for cuttings)" class="border p-3 rounded md:col-span-3">
+                    <button onclick="addEntry()" class="md:col-span-3 bg-green-700 text-white font-black py-4 rounded-xl hover:bg-green-800 text-xl shadow-lg">SAVE TO LEDGER</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8">
+            <input type="text" id="searchInput" onkeyup="updateUI()" placeholder="Search #1st, Barn A, Alfalfa, or Miller Farm..." class="w-full p-4 mb-4 rounded-xl border-2 border-slate-200 outline-none focus:border-green-600 shadow-sm font-bold">
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden border">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse min-w-[800px]">
+                        <thead class="bg-slate-900 text-white text-[10px] uppercase">
+                            <tr>
+                                <th class="p-4">Date</th><th class="p-4">Contact</th><th class="p-4">Variety</th>
+                                <th class="p-4">Lbs/Bale</th><th class="p-4">Tons</th><th class="p-4">Mst%</th>
+                                <th class="p-4">Amount</th><th class="p-4">Barn Bal.</th><th class="p-4">Del</th>
+                            </tr>
+                        </thead>
+                        <tbody id="logBody" class="text-xs"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-6 flex justify-between text-[10px] text-slate-400 font-bold uppercase pb-10">
+            <button onclick="exportToCSV()" class="hover:text-slate-800">Export Excel (CSV)</button>
+            <button onclick="clearData()" class="hover:text-red-500">Delete Entire Database</button>
+        </div>
+    </div>
+
+    <script>
+        let entries = []; let contacts = [];
+
+        window.onload = () => {
+            const d = localStorage.getItem('hayProData'); const c = localStorage.getItem('hayProContacts');
+            if (d) entries = JSON.parse(d); if (c) contacts = JSON.parse(c);
+            updateContactUI(); updateUI();
+        };
+
+        function addContact() {
+            const n = document.getElementById('newContact').value.trim();
+            if (n && !contacts.includes(n)) { contacts.push(n); saveContacts(); }
+            document.getElementById('newContact').value = '';
+        }
+        function saveContacts() { localStorage.setItem('hayProContacts', JSON.stringify(contacts)); updateContactUI(); }
+        function updateContactUI() {
+            const l = document.getElementById('contactList'); const p = document.getElementById('contactPicker');
+            l.innerHTML = ''; p.innerHTML = '<option value="General">-- Select Contact --</option>';
+            contacts.sort().forEach(c => {
+                l.innerHTML += `<li class="flex justify-between p-2 bg-slate-50 border rounded mb-1">${c}<button onclick="removeContact('${c}')" class="text-red-400 font-bold">✕</button></li>`;
+                p.innerHTML += `<option value="${c}">${c}</option>`;
+            });
+        }
+        function removeContact(n) { contacts = contacts.filter(c => c !== n); saveContacts(); }
+        function quickCalc() {
+            const b = document.getElementById('calcBales').value; const w = document.getElementById('calcAvgW').value;
+            if (b && w) document.getElementById('calcRes').innerText = ((b * w) / 2000).toFixed(2) + " Tons Total";
+        }
+
+        function addEntry() {
+            const lbs = parseFloat(document.getElementById('weight').value);
+            const amt = parseFloat(document.getElementById('totalPrice').value);
+            const bls = parseInt(document.getElementById('bales').value) || 0;
+            if (!lbs || !amt) return alert("Missing numbers!");
+
+            entries.push({
+                id: Date.now(),
+                type: document.getElementById('type').value,
+                contact: document.getElementById('contactPicker').value,
+                desc: document.getElementById('desc').value,
+                bales: bls,
+                tons: lbs / 2000,
+                avgW: bls > 0 ? (lbs / bls).toFixed(1) : 0,
+                amount: amt,
+                moisture: parseFloat(document.getElementById('moisture').value) || 0,
+                location: document.getElementById('location').value || 'Main',
+                notes: document.getElementById('notes').value || '',
+                date: document.getElementById('date').value || new Date().toISOString().split('T')[0]
+            });
+            localStorage.setItem('hayProData', JSON.stringify(entries));
+            updateUI();
+            ['desc', 'bales', 'weight', 'totalPrice', 'moisture', 'notes'].forEach(id => document.getElementById(id).value = '');
+        }
+
+        function updateUI() {
+            const log = document.getElementById('logBody'); const s = document.getElementById('searchInput').value.toLowerCase();
+            log.innerHTML = ''; 
+            let runningTons = 0; let spent = 0; let earned = 0; 
+            
+            // Sort Chronological for Running Balance calculation
+            entries.sort((a,b) => new Date(a.date) - new Date(b.date));
+
+            // Temporary list for display (Reversed Newest at Top)
+            let displayList = [];
+
+            entries.forEach(e => {
+                const match = (e.desc + e.contact + e.notes + e.location).toLowerCase().includes(s);
+                if (e.type === 'buy') { runningTons += e.tons; if(match) spent += e.amount; } 
+                else { runningTons -= e.tons; if(match) earned += e.amount; }
+                
+                if (match) {
+                    const rowClass = e.desc.toLowerCase().includes('alfalfa') ? 'row-alfalfa' : (e.desc.toLowerCase().includes('straw') ? 'row-straw' : (e.desc.toLowerCase().includes('grass') ? 'row-grass' : ''));
+                    const rowHtml = `<tr class="border-b ${rowClass} hover:bg-slate-50 transition">
+                        <td class="p-4 font-mono font-bold">${e.date}</td>
+                        <td class="p-4 font-bold text-blue-900">${e.contact}</td>
+                        <td class="p-4 font-bold ${e.type === 'buy' ? 'text-red-500' : 'text-green-600'}">${e.type.toUpperCase()}</td>
+                        <td class="p-4"><strong>${e.desc}</strong><br><small class="text-slate-400 italic">${e.location} | ${e.notes}</small></td>
+                        <td class="p-4 font-bold">${e.avgW} lbs</td>
+                        <td class="p-4 font-bold">${e.tons.toFixed(2)}</td>
+                        <td class="p-4 font-bold ${e.moisture > 18 ? 'hot-load' : ''}">${e.moisture}%</td>
+                        <td class="p-4 font-mono font-bold">$${e.amount.toLocaleString()}</td>
+                        <td class="p-4 font-bold text-slate-500 bg-slate-100">${runningTons.toFixed(1)} t</td>
+                        <td class="p-4"><button onclick="deleteEntry(${e.id})" class="text-red-300 hover:text-red-600">✕</button></td>
+                    </tr>`;
+                    displayList.unshift(rowHtml);
+                }
+            });
+
+            log.innerHTML = displayList.join('');
+            document.getElementById('totalSpent').innerText = "$" + spent.toLocaleString();
+            document.getElementById('totalEarned').innerText = "$" + earned.toLocaleString();
+            document.getElementById('totalTons').innerText = runningTons.toFixed(1);
+            
+            const net = earned - spent;
+            const tax = net > 0 ? net * 0.15 : 0;
+            document.getElementById('netProfit').innerText = (net < 0 ? "-" : "") + "$" + Math.abs(net).toLocaleString();
+            document.getElementById('taxReserve').innerText = "$" + tax.toLocaleString();
+            document.getElementById('profitBox').className = `p-4 rounded-xl shadow border-b-4 transition ${net >= 0 ? 'bg-green-800 border-green-950' : 'bg-red-900 border-red-950'}`;
+        }
+
+        function deleteEntry(id) { if (confirm("Delete this record?")) { entries = entries.filter(e => e.id !== id); localStorage.setItem('hayProData', JSON.stringify(entries)); updateUI(); } }
+        function exportToCSV() {
+            let csv = "Date,Contact,Type,Description,Bales,Tons,AvgBaleWeight,Price,Moisture,Location,Notes\n";
+            entries.forEach(e => { csv += `"${e.date}","${e.contact}","${e.type}","${e.desc}",${e.bales},${e.tons.toFixed(2)},${e.avgW},${e.amount.toFixed(2)},${e.moisture},"${e.location}","${e.notes}"\n`; });
+            window.open(encodeURI("data:text/csv;charset=utf-8," + csv));
+        }
+        function clearData() { if(confirm("This wipes EVERYTHING. Proceed?")) { localStorage.clear(); location.reload(); } }
+    </script>
+</body>
+</html>
